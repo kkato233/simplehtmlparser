@@ -39,5 +39,5 @@ https://nuget.org/packages/SgmlReader
 これらのライブラリでは オリジナルのHTMLとかなり違ったHTMLを
 生成してしまいます。
 
-'Simple Html Parser' では 改行コードや空白を一切変更せず
+`Simple Html Parser` では 改行コードや空白を一切変更せず
 変更したい場所を変更した HTML を生成します。
