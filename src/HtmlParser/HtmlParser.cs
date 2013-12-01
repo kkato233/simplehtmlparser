@@ -967,10 +967,11 @@ namespace HtmlTools
             _Name = attributeName;
             _Value = initialValue;
         }
+
         /// <summary>
         /// </summary>
         /// <param name="fromRawString"></param>
-        public AttributeItem(string fromRawString)
+        internal AttributeItem(string fromRawString)
         {
             _RawString = fromRawString;
             // 属性の文字列を解析する
@@ -988,22 +989,65 @@ namespace HtmlTools
                 _Value = null;
             }
         }
+
         /// <summary>
-        /// 属性名は小文字に正規化されている。
+        /// 属性名
         /// </summary>
         public string Name
         {
             get { return _Name; }
-            set { _Name = value; _RawString = null; }
+            set {
+                if (value == null) throw new ArgumentNullException("Name");
+
+                _Name = value; 
+                _RawString = null;
+            }
         }
         string _Name;
 
+        /// <summary>
+        /// 属性の値
+        /// </summary>
         public string Value
         {
             get { return _Value; }
             set
             {
-                _Value = value; _RawString = null;
+                if (value == null) throw new ArgumentNullException("Value");
+
+                _Value = value;
+
+                // Quote のチェック＆設定
+                if (_Value.Length >= 2
+                    && (_Value[0] == '"' || _Value[0] == '\'')
+                    && _Value.First() == _Value.Last())
+                {
+                    this._QuoteChar = _Value[0];
+                    this._Value = _Value.Substring(1, _Value.Length - 2);
+
+                    if (this._Value.Contains(this._QuoteChar))
+                    {
+                        throw new InvalidOperationException("属性に許可されない値が指定されました(" + this._QuoteChar + ")");
+                    }
+                }
+                else
+                {
+                    // 値の内容に合わせて ' または " を切り替える
+                    if (this._Value.Contains('\'') == false)
+                    {
+                        this._QuoteChar = '\'';
+                    }
+                    else if (this._Value.Contains('"') == false)
+                    {
+                        this._QuoteChar = '"';
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("属性の値に \" と ' が両方含まれています。");
+                    }
+                }
+
+                _RawString = null;
             }
         }
         string _Value;
@@ -1021,23 +1065,21 @@ namespace HtmlTools
 
                 // 属性="値" という形にして返す。
 
-                string dispValue;
-                if (_Value.Length >= 2 && _Value[0] == '"' && _Value[_Value.Length - 1] == '"')
+                List<string> ans = new List<string>();
+                ans.Add(this._Name);
+                ans.Add("=");
+                if (this._QuoteChar != '\0')
                 {
-                    // 事前に "" が設定されているのでそのまま利用する。
-                    dispValue = _Value;
-                }
-                if (_Value.Length >= 2 && _Value[0] == '\'' && _Value[_Value.Length - 1] == '\'')
-                {
-                    // 事前に ' が設定されているのでそのまま利用する。
-                    dispValue = _Value;
+                    ans.Add(this._QuoteChar.ToString());
+                    ans.Add(this._Value);
+                    ans.Add(this._QuoteChar.ToString());
                 }
                 else
                 {
-                    // " を &quot; に変換する。
-                    dispValue = "\"" + _Value.Replace("\"", "&quot;") + "\"";
+                    ans.Add(this._Value);
                 }
-                return _Name + "=" + dispValue;
+
+                return string.Join("", ans);
             }
         }
         protected string _RawString;
@@ -1046,6 +1088,11 @@ namespace HtmlTools
         {
             return RawString;
         }
+
+        /// <summary>
+        /// 属性の開始と終了で利用する文字列
+        /// </summary>
+        private char _QuoteChar = '\0';
     }
 
 
