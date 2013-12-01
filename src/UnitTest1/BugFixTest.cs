@@ -13,7 +13,7 @@ namespace UnitTest1
         /// &lt;body&gt タグを探そうとしたら見つからなかった バグの修正
         /// </summary>
         [TestMethod]
-        public void TestFix02()
+        public void Issue_02()
         {
             // HTML パーサーインスタンス
             HtmlTools.HtmlParser p = new HtmlTools.HtmlParser();
@@ -40,7 +40,7 @@ hello world.
         }
 
         [TestMethod]
-        public void TestFix03()
+        public void Issue_03()
         {
             // https://github.com/kkato233/simplehtmlparser/issues/3
             // 属性を書き換えたら ' が " に代わってしまった
@@ -68,12 +68,14 @@ hello world.
             div.SetAttributes("class", "test2");
 
             string outHtml = dom.ToHtmlString();
+
+            // オリジナルの ' がそのまま ' になる事を確認
             Assert.IsTrue(outHtml.Contains("<div class='test2'>"),outHtml);
         }
 
 
         [TestMethod]
-        public void TestFix03_A()
+        public void Issue_03_A()
         {
             // https://github.com/kkato233/simplehtmlparser/issues/3
             // 属性を書き換えたら ' が " に代わってしまった
@@ -93,12 +95,12 @@ hello world.
             div.SetAttributes("class", "let's");
 
             string outHtml = dom.ToHtmlString();
-            Assert.IsTrue(outHtml.Contains("<div class='let's'>"), outHtml);
+            Assert.IsTrue(outHtml.Contains("<div class=\"let's\">"), outHtml);
         }
 
 
         [TestMethod]
-        public void TestFix03_B()
+        public void Issue_03_B()
         {
             // https://github.com/kkato233/simplehtmlparser/issues/3
             // 属性を書き換えたら ' が " に代わってしまった
@@ -119,6 +121,44 @@ hello world.
 
             string outHtml = dom.ToHtmlString();
             Assert.IsTrue(outHtml.Contains("<div class='\"'>"), outHtml);
+        }
+
+
+        [TestMethod]
+        public void Issue_03_C()
+        {
+            // https://github.com/kkato233/simplehtmlparser/issues/3
+            // 属性を書き換えたら ' が " に代わってしまった
+
+            // HTML パーサーインスタンス
+            HtmlTools.HtmlParser p = new HtmlTools.HtmlParser();
+
+            // 入力のHTML
+            string html = "<div data='\"'></div>";
+
+            // 文字列を解析してDOMにする
+            var dom = p.ParseHtmlString(html);
+
+            var div = dom.GetElementsByTagName("div").FirstOrDefault();
+
+            Assert.IsNotNull(div);
+            div.SetAttributes("data", "\"dat\"");
+
+            string outHtml = dom.ToHtmlString();
+
+            // 明示的に " で囲んで指定するとそのまま設定される
+            Assert.IsTrue(outHtml.Contains("<div data=\"dat\">"), outHtml);
+
+            // デフォルトは ' で囲まれる
+            div.SetAttributes("data", "dat");
+            outHtml = dom.ToHtmlString();
+            Assert.IsTrue(outHtml.Contains("<div data='dat'>"), outHtml);
+
+            div.SetAttributes("data","if\"g");
+            outHtml = dom.ToHtmlString();
+
+            // " を設定すると自動的に ' で囲まれる
+            Assert.IsTrue(outHtml.Contains("<div data='if\"g'>"), outHtml);
         }
     }
 }
