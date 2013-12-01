@@ -562,7 +562,7 @@ namespace HtmlTools
             }
             // タグ名解析を行っていない場合
             string checkTag = "<" + tagName;
-            if (RawString.Length > checkTag.Length + 1 &&
+            if (RawString.Length > checkTag.Length &&
                 string.Equals(checkTag, RawString.Substring(0, checkTag.Length), StringComparison.OrdinalIgnoreCase))
             {
                 char tagNextChar = RawString[tagName.Length + 1]; // タグの終了の文字
